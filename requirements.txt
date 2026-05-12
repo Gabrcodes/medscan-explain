@@ -1,0 +1,30 @@
+# --- Core DL ---
+torch>=2.2
+torchvision>=0.17
+timm>=0.9.16                 # EfficientNet / ViT backbones
+
+# --- Data ---
+datasets>=2.18              # HuggingFace datasets (chest X-ray, HAM10000)
+pillow>=10.0
+numpy>=1.26
+pandas>=2.1
+
+# --- Metrics / plots ---
+scikit-learn>=1.4
+matplotlib>=3.8
+seaborn>=0.13
+
+# --- Explainability ---
+grad-cam>=1.5.0             # package name: pytorch-grad-cam, import: pytorch_grad_cam
+
+# --- Bedrock / RAG ---
+boto3>=1.34
+faiss-cpu>=1.8.0
+
+# --- Demo app ---
+streamlit>=1.33
+
+# --- Utils ---
+tqdm>=4.66
+python-dotenv>=1.0
+pyyaml>=6.0

@@ -1,0 +1,34 @@
+# Data & model artifacts
+data/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+faiss_index/
+*.faiss
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+*.env
+aws_credentials*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Outputs
+outputs/
+runs/
+wandb/
+*.log
