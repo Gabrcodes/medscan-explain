@@ -32,3 +32,6 @@ outputs/
 runs/
 wandb/
 *.log
+
+# Claude Code local settings
+.claude/
