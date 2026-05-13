@@ -96,7 +96,7 @@ def logreg_pixel_baseline(cfg: TrainConfig, train_loader, test_loader):
 
     Xtr, ytr = to_xy(train_loader)
     Xte, yte = to_xy(test_loader)
-    clf = LogisticRegression(max_iter=2000, C=1.0, multi_class="auto")
+    clf = LogisticRegression(max_iter=2000, C=1.0)
     clf.fit(Xtr, ytr)
     preds = clf.predict(Xte)
     return {

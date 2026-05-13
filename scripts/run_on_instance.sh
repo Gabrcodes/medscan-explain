@@ -8,6 +8,13 @@ DATASET="${1:-pneumonia}"
 BACKBONE="${2:-efficientnet_b0}"
 EPOCHS="${3:-10}"
 
+# The AWS Deep Learning AMI ships PyTorch in a venv, not the system python.
+if [ -f /opt/pytorch/bin/activate ]; then
+  # shellcheck disable=SC1091
+  source /opt/pytorch/bin/activate
+fi
+PY=python
+
 echo "== GPU =="
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
 python3 -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
