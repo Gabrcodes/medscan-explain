@@ -268,4 +268,8 @@ if __name__ == "__main__":
     )
     print(f"backend: {demo['backend']}")
     print(f"retrieved: {demo['retrieved']}\n")
-    print(demo["report"])
+    # write to stdout defensively: some Windows consoles are cp1252 and can't encode
+    # the emoji/dashes an LLM may emit. Replace un-encodable chars rather than crashing.
+    import sys
+    enc = sys.stdout.encoding or "utf-8"
+    sys.stdout.write(demo["report"].encode(enc, errors="replace").decode(enc) + "\n")

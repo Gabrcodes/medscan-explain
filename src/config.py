@@ -84,7 +84,9 @@ class TrainConfig:
 class BedrockConfig:
     region: str = "us-east-1"
     # Inference profile / model ids — adjust to whatever you've been granted access to.
-    chat_model_id: str = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    # NB: Claude 4.x on Bedrock is only invokable via a cross-region *inference profile*
+    # id (the "us." prefix), not the bare model id. Titan embeddings use the bare id.
+    chat_model_id: str = "us.anthropic.claude-sonnet-4-6"
     embed_model_id: str = "amazon.titan-embed-text-v2:0"
     max_tokens: int = 1200
     temperature: float = 0.2
