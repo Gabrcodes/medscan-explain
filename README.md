@@ -39,17 +39,54 @@ fine-tuning) and **multi-label classification** (independent sigmoid heads + BCE
 | **NIH ChestX-ray14** (Wang et al. 2017) | **multi-label**: 14 findings (Atelectasis, Cardiomegaly, Effusion, …, Hernia) | ~112k images | labels NLP-mined from reports (~90% accurate); strong class imbalance; image-level labels only |
 | HAM10000 (optional / stretch) | 7-class skin-lesion | ~10k images | known under-representation of darker skin tones |
 
-## Results so far
+## Results
 
-| Model | Dataset | Test metric | Baselines |
+### Headline (test-set, after 10 epochs of fine-tuning)
+
+| Model | Params | Dataset | Headline metric | Baselines |
+|---|---|---|---|---|
+| **EfficientNet-B0** | 5.3 M | Chest X-Ray Pneumonia (binary, 624-img test) | **91.4 % acc · 0.907 macro-F1 · 0.956 ROC-AUC** | logreg-on-pixels 75.8 % · majority-class 62.5 % |
+| **ConvNeXt-Base** | 87.6 M | **NIH ChestX-ray14 (14 findings, 25,596-img test)** | **mean ROC-AUC 0.803 · micro-F1@0.5 0.324 · mAP 0.269** | per-class-logreg-on-pixels 0.567 · prevalence 0.500 |
+| **ViT-Base** | 85.8 M | NIH ChestX-ray14 (same) | mean ROC-AUC 0.798 · micro-F1@0.5 0.332 · mAP 0.257 | same |
+
+For reference, CheXNet (Rajpurkar et al. 2017) reports ~0.84 mean AUC with a 121-layer
+DenseNet trained much longer; our 10-epoch ConvNeXt-Base at 0.80 is in the same regime,
+and a transparent backbone-vs-backbone comparison was the goal — not chasing the leader.
+ConvNeXt-Base edges out ViT-Base on mean AUC; ViT is slightly better on micro-F1.
+
+### Per-finding ROC-AUC (NIH ChestX-ray14, test set)
+
+| Finding | Prevalence | ConvNeXt-Base | ViT-Base |
 |---|---|---|---|
-| EfficientNet-B0 | Chest X-Ray Pneumonia | **91.4% acc · 0.907 macro-F1 · 0.956 ROC-AUC** (624-image test set) | logreg-on-pixels 75.8% acc · majority-class 62.5% acc |
-| ConvNeXt-Base | NIH ChestX-ray14 (multi-label) | mean ROC-AUC over 14 findings — *training in progress* (≈0.84 at epoch 5) | prevalence predictor ≈0.50 mean AUC |
-| ViT-Base | NIH ChestX-ray14 (multi-label) | *queued* | — |
+| Atelectasis | 12.8 % | 0.760 | 0.759 |
+| Cardiomegaly | 4.2 % | 0.875 | 0.887 |
+| Effusion | 18.2 % | 0.823 | 0.823 |
+| Infiltration | 23.9 % | 0.698 | 0.691 |
+| Mass | 6.8 % | 0.808 | 0.804 |
+| Nodule | 6.3 % | 0.749 | 0.733 |
+| Pneumonia | 2.2 % | 0.714 | 0.683 |
+| **Pneumothorax** | 10.4 % | **0.857** | 0.846 |
+| Consolidation | 7.1 % | 0.749 | 0.734 |
+| Edema | 3.6 % | 0.838 | 0.842 |
+| Emphysema | 4.3 % | 0.898 | 0.898 |
+| Fibrosis | 1.7 % | 0.815 | 0.824 |
+| Pleural Thickening | 4.5 % | 0.762 | 0.764 |
+| **Hernia** | 0.3 % | **0.902** | 0.886 |
 
-Trained on an AWS EC2 GPU instance (NVIDIA T4 for pneumonia, NVIDIA L40S for the larger
-models). Wall-clock training time and a back-of-envelope CO₂ estimate are reported in the
-written report (the figures are saved in each checkpoint as `train_seconds`).
+Notes worth discussing in Q&A: *Infiltration* and *Pneumonia* are the hardest classes,
+which lines up with the literature — both are radiographic appearances rather than crisp
+entities, and their NLP-mined labels are correspondingly noisy. *Hernia* gets the highest
+AUC despite the lowest prevalence (0.3 %), a known artifact of class-rarity on AUC.
+
+Figures: `reports/figures/` (loss/AUC curves, per-class AUC bar charts, top-finding ROC),
+raw metric dumps: `reports/metrics/`.
+
+### Training cost
+
+Each NIH model trained in **≈44 min** on a single NVIDIA L40S (g6e.2xlarge, us-east-1),
+≈$1.40 of GPU time per model. EfficientNet-B0 on the pneumonia dataset trained in 7.4 min
+on a T4. Total project GPU spend ≈ $4.50. Carbon footprint estimate: ~0.3–0.5 kg CO₂
+(fine-tuning, not pre-training; details in `reports/`).
 
 ---
 

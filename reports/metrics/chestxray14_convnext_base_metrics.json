@@ -1,0 +1,116 @@
+{
+  "checkpoint": "checkpoints/chestxray14_convnext_base_best.pt",
+  "dataset": "chestxray14",
+  "task": "multilabel",
+  "backbone": "convnext_base",
+  "train_seconds": 2616.40061044693,
+  "tta": true,
+  "n_test": 25596,
+  "params_millions": 87.58,
+  "mean_roc_auc": 0.8034333163747652,
+  "micro_f1@0.5": 0.32375468686760694,
+  "macro_f1@0.5": 0.2883757171798184,
+  "mean_avg_precision": 0.2687804433704448,
+  "per_class": {
+    "Atelectasis": {
+      "prevalence": 0.12810595333576202,
+      "f1@0.5": 0.3228465289064314,
+      "roc_auc": 0.7599878831513694,
+      "avg_precision": 0.3209843363563998
+    },
+    "Cardiomegaly": {
+      "prevalence": 0.041764337569475174,
+      "f1@0.5": 0.3394495412844037,
+      "roc_auc": 0.8746829585447976,
+      "avg_precision": 0.3208814985484533
+    },
+    "Effusion": {
+      "prevalence": 0.18198156356811523,
+      "f1@0.5": 0.4614872364039956,
+      "roc_auc": 0.8232884736760488,
+      "avg_precision": 0.4985207663084298
+    },
+    "Infiltration": {
+      "prevalence": 0.23878730833530426,
+      "f1@0.5": 0.4408118206521739,
+      "roc_auc": 0.6977848769859227,
+      "avg_precision": 0.3953876834655562
+    },
+    "Mass": {
+      "prevalence": 0.06829191744327545,
+      "f1@0.5": 0.2484899172939318,
+      "roc_auc": 0.8078498875793834,
+      "avg_precision": 0.30411660615125546
+    },
+    "Nodule": {
+      "prevalence": 0.06340834498405457,
+      "f1@0.5": 0.19967711785198403,
+      "roc_auc": 0.7486388787303564,
+      "avg_precision": 0.2155279289665536
+    },
+    "Pneumonia": {
+      "prevalence": 0.02168307639658451,
+      "f1@0.5": 0.1018957345971564,
+      "roc_auc": 0.7135537358371911,
+      "avg_precision": 0.055443564436803386
+    },
+    "Pneumothorax": {
+      "prevalence": 0.10411783307790756,
+      "f1@0.5": 0.42986903253062947,
+      "roc_auc": 0.857210149086627,
+      "avg_precision": 0.4148461426355244
+    },
+    "Consolidation": {
+      "prevalence": 0.0709095150232315,
+      "f1@0.5": 0.2158593576144203,
+      "roc_auc": 0.7493933103759131,
+      "avg_precision": 0.1686138225644094
+    },
+    "Edema": {
+      "prevalence": 0.03613846004009247,
+      "f1@0.5": 0.21592985020094996,
+      "roc_auc": 0.8384810922551589,
+      "avg_precision": 0.15311369227514213
+    },
+    "Emphysema": {
+      "prevalence": 0.04270198568701744,
+      "f1@0.5": 0.3670122980467808,
+      "roc_auc": 0.8981066007601661,
+      "avg_precision": 0.3629962599500928
+    },
+    "Fibrosis": {
+      "prevalence": 0.016994843259453773,
+      "f1@0.5": 0.1686182669789227,
+      "roc_auc": 0.8148862018257594,
+      "avg_precision": 0.10164420586144635
+    },
+    "Pleural_Thickening": {
+      "prevalence": 0.044655416160821915,
+      "f1@0.5": 0.1780079489341202,
+      "roc_auc": 0.7624652595643063,
+      "avg_precision": 0.13674671157956148
+    },
+    "Hernia": {
+      "prevalence": 0.003359900088980794,
+      "f1@0.5": 0.3473053892215569,
+      "roc_auc": 0.9017371208737112,
+      "avg_precision": 0.3141029880865993
+    }
+  },
+  "complexity_notes": {
+    "inference": "O(1) forward pass/image",
+    "training": "O(epochs * dataset_size)"
+  },
+  "baselines": [
+    {
+      "name": "prevalence-predictor",
+      "mean_roc_auc": 0.5,
+      "macro_f1@0.5": 0.0
+    },
+    {
+      "name": "per-class-logreg-on-32x32-pixels",
+      "mean_roc_auc": 0.5670615318760588,
+      "macro_f1@0.5": 0.027503334277616736
+    }
+  ]
+}
