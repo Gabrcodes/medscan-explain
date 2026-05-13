@@ -53,6 +53,7 @@ DATASETS = {
         # data.py derives the 14 disease classes from the dataset features and treats
         # "No Finding" as the all-zeros vector.
         "hf_id": "alkzar90/NIH-Chest-X-ray-dataset",
+        "hf_config": "image-classification",   # the other config is object-detection
         "image_col": "image",
         "label_col": "labels",
         "task": "multilabel",

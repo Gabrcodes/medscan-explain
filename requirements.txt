@@ -4,7 +4,7 @@ torchvision>=0.17
 timm>=0.9.16                 # EfficientNet / ViT backbones
 
 # --- Data ---
-datasets>=2.18              # HuggingFace datasets (chest X-ray, HAM10000)
+datasets>=2.18,<4.0         # HF datasets; <4.0 keeps script-dataset support (NIH ChestX-ray14)
 pillow>=10.0
 numpy>=1.26
 pandas>=2.1

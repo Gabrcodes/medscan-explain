@@ -204,7 +204,15 @@ def get_datasets(cfg: TrainConfig):
     multilabel = spec.get("task") == "multilabel"
     seed_everything(cfg.seed)
 
-    raw = load_dataset(spec["hf_id"], cache_dir=str(DATA_DIR))
+    # Some HF datasets (e.g. NIH ChestX-ray14) ship a loading *script* (needs datasets<4.0
+    # and trust_remote_code=True) and require a config name. Build kwargs accordingly.
+    hf_args = [spec["hf_id"]]
+    if spec.get("hf_config"):
+        hf_args.append(spec["hf_config"])
+    try:
+        raw = load_dataset(*hf_args, cache_dir=str(DATA_DIR), trust_remote_code=True)
+    except TypeError:
+        raw = load_dataset(*hf_args, cache_dir=str(DATA_DIR))
     img_col, lab_col = spec["image_col"], spec["label_col"]
 
     # class names: prefer reading them off the dataset's features
