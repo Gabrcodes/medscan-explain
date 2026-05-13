@@ -9,7 +9,11 @@
       "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Implement classifier, training, eval, Grad-CAM, Bedrock RAG, Streamlit demo, docs *)",
       "Bash(aws sts *)",
       "Bash(aws bedrock *)",
-      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Wire up working Bedrock model IDs \\(Claude Sonnet 4.6 inference profile\\); live RAG report verified *)"
+      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Wire up working Bedrock model IDs \\(Claude Sonnet 4.6 inference profile\\); live RAG report verified *)",
+      "Bash(git bundle *)",
+      "Read(//tmp/**)",
+      "Bash([ -s \"$f\" ])",
+      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Add instance bootstrap script *)"
     ]
   }
 }
