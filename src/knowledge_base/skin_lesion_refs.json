@@ -1,0 +1,30 @@
+[
+  {
+    "id": "ham10000-classes",
+    "topic": "skin-lesion",
+    "title": "HAM10000 lesion categories",
+    "text": "The HAM10000 dataset covers seven diagnostic categories: actinic keratoses / intraepithelial carcinoma (akiec), basal cell carcinoma (bcc), benign keratosis-like lesions (bkl, including solar lentigines and seborrheic keratoses), dermatofibroma (df), melanocytic nevi (nv, the most common), melanoma (mel), and vascular lesions (vasc). Melanoma and basal/squamous cell carcinomas are the malignant categories of primary concern.",
+    "source": "Tschandl et al., 'The HAM10000 dataset', Scientific Data 2018; summarised for educational use."
+  },
+  {
+    "id": "abcde-melanoma",
+    "topic": "skin-lesion",
+    "title": "ABCDE warning features for melanoma",
+    "text": "Clinicians screen pigmented lesions using the ABCDE rule: Asymmetry, Border irregularity, Colour variation, Diameter greater than ~6 mm, and Evolving (changing) appearance. Any new, changing, bleeding, or non-healing skin lesion should be evaluated in person by a dermatologist regardless of an algorithm's output.",
+    "source": "Adapted from American Academy of Dermatology public guidance; educational use only."
+  },
+  {
+    "id": "dermoscopy-vs-photo",
+    "topic": "skin-lesion",
+    "title": "Dermoscopy images are not phone photos",
+    "text": "HAM10000 images are dermoscopic (taken with a contact dermatoscope under controlled lighting and magnification). A model trained on them should not be expected to perform on ordinary smartphone photographs, which differ in lighting, focus, scale, and the absence of dermoscopic structures.",
+    "source": "Project design note; consistent with the dermoscopy ML literature."
+  },
+  {
+    "id": "skin-tone-bias",
+    "topic": "responsible-ai",
+    "title": "Skin-tone representation bias in dermatology datasets",
+    "text": "Widely used dermatology image datasets, including HAM10000, contain very few images of darker (Fitzpatrick V-VI) skin. Models trained on them tend to be less accurate for under-represented skin tones, and melanoma in darker skin often presents in acral or subungual sites that are also under-represented. Reported aggregate metrics can mask large per-subgroup gaps.",
+    "source": "Adapted from work on dataset diversity in dermatology AI (e.g., Daneshjou et al.); educational use only."
+  }
+]

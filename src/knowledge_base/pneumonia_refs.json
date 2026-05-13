@@ -1,0 +1,37 @@
+[
+  {
+    "id": "cxr-pneumonia-consolidation",
+    "topic": "pneumonia",
+    "title": "Radiographic signs of pneumonia on chest X-ray",
+    "text": "On a chest radiograph, bacterial pneumonia typically appears as an area of increased opacity (consolidation), often confined to one lobe (lobar pneumonia), sometimes with air bronchograms. Viral or atypical pneumonia more often shows bilateral, diffuse, interstitial or peribronchial patterns. A normal chest X-ray does not fully exclude early or atypical pneumonia.",
+    "source": "Adapted from general radiology teaching references (e.g., Radiopaedia 'Pneumonia'); for educational use only."
+  },
+  {
+    "id": "cxr-pediatric-context",
+    "topic": "pneumonia",
+    "title": "Pediatric chest X-ray interpretation caveats",
+    "text": "Pediatric chest films differ from adult films: the thymus can mimic mediastinal widening or a mass in young children, and rotation/inspiration artefacts are common and can simulate or obscure consolidation. Findings must always be correlated with clinical signs (fever, tachypnea, work of breathing, auscultation) and not read in isolation.",
+    "source": "Adapted from pediatric radiology teaching material; educational use only."
+  },
+  {
+    "id": "pneumonia-when-to-seek-care",
+    "topic": "pneumonia",
+    "title": "When pneumonia needs urgent attention",
+    "text": "Warning signs that warrant prompt in-person medical assessment include difficulty breathing or rapid breathing, chest pain, bluish lips or face, persistent high fever, confusion or unusual drowsiness, and in infants poor feeding or grunting. These are clinical red flags independent of any imaging result.",
+    "source": "Adapted from public health guidance (e.g., CDC / NHS pneumonia pages); educational use only."
+  },
+  {
+    "id": "ai-cxr-limitations",
+    "topic": "responsible-ai",
+    "title": "Known limitations of AI chest X-ray classifiers",
+    "text": "Deep-learning chest X-ray models frequently learn spurious shortcuts: laterality markers, hospital-specific tokens burned into the image, exposure/processing differences, or patient-positioning cues. Performance commonly drops when a model trained at one site is applied to images from another scanner, population, or age group. Reported accuracy on a held-out split from the same source is an upper bound, not a clinical performance estimate.",
+    "source": "Adapted from the medical ML literature on dataset shift and shortcut learning; educational use only."
+  },
+  {
+    "id": "scope-not-a-diagnosis",
+    "topic": "responsible-ai",
+    "title": "Scope of an automated preliminary note",
+    "text": "An automated image-classification output is a statistical pattern match, not a diagnosis. It cannot take a history, examine the patient, order labs, or weigh differential diagnoses. Any generated note must be framed as a non-binding educational aid, must surface model uncertainty, and must direct the reader to a qualified clinician for interpretation and decisions.",
+    "source": "Project design principle (MedScan + Explain)."
+  }
+]
