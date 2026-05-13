@@ -15,7 +15,8 @@
       "Bash([ -s \"$f\" ])",
       "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Add instance bootstrap script *)",
       "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Fix: drop removed multi_class kwarg from LogisticRegression \\(sklearn>=1.7\\) *)",
-      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Add multi-label support + NIH ChestX-ray14 dataset; bigger-model ready \\(ConvNeXt/ViT\\) *)"
+      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Add multi-label support + NIH ChestX-ray14 dataset; bigger-model ready \\(ConvNeXt/ViT\\) *)",
+      "Bash(git -c user.email=bedokak@gmail.com -c 'user.name=MedScan Team' commit -q -m 'Multi-label support in Grad-CAM, Bedrock report, Streamlit app; NIH chest KB *)"
     ]
   }
 }

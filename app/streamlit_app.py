@@ -35,8 +35,10 @@ st.set_page_config(page_title="MedScan + Explain", page_icon="🩻", layout="wid
 def _load_model(checkpoint_path: str):
     import torch
     from src.model import build_model
-    ckpt = torch.load(checkpoint_path, map_location="cpu")
+    ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     cfg = TrainConfig(**ckpt["config"])
+    if ckpt.get("class_names"):
+        cfg._resolved_classes = list(ckpt["class_names"])
     model = build_model(cfg, pretrained=False)
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
@@ -106,43 +108,84 @@ except Exception as e:  # noqa: BLE001
     st.error(f"Could not load the model checkpoint: {e}")
     st.stop()
 
-col_img, col_cam = st.columns(2)
-with col_img:
-    st.subheader("Input")
-    st.image(image, use_column_width=True)
+from src.gradcam import gradcam_overlay, describe_cam, top_findings
+from src.bedrock_report import generate_multilabel_report
 
-# --- inference + Grad-CAM ---------------------------------------------------
-with st.spinner("Running classifier + Grad-CAM…"):
-    from src.gradcam import gradcam_overlay, describe_cam
-    overlay, cam, pred_idx, probs = gradcam_overlay(model, cfg, image)
-    cam_text = describe_cam(cam, cfg.class_names[pred_idx])
+multilabel = getattr(cfg, "is_multilabel", False)
+patient_meta = {}
+if age_group != "unspecified":
+    patient_meta["age_group"] = age_group
+if view.strip():
+    patient_meta["note"] = view.strip()
 
-with col_cam:
-    st.subheader("Grad-CAM — where the model looked")
-    st.image(overlay, use_column_width=True, caption="Coarse attention heat-map (not a lesion boundary).")
+if multilabel:
+    threshold = st.slider("Finding threshold (probability above which a finding is highlighted)",
+                          0.05, 0.95, 0.5, 0.05)
+    with st.spinner("Running classifier + Grad-CAM…"):
+        # one forward pass gives all 14 scores; we take the top finding's heat-map for the main view
+        overlay, cam, pred_idx, probs = gradcam_overlay(model, cfg, image)
+        finds = top_findings(probs, cfg.class_names, threshold=threshold, top_k=4)
+        cam_descriptions = {}
+        cam_imgs = {}
+        for idx, name, _ in finds[:3]:
+            ov, cm, _, _ = gradcam_overlay(model, cfg, image, target_class=idx)
+            cam_imgs[name] = ov
+            cam_descriptions[name] = describe_cam(cm, name)
 
-# --- prediction summary -----------------------------------------------------
-st.subheader("Prediction")
-top = cfg.class_names[pred_idx]
-st.markdown(f"**{top}**  ·  model confidence (uncalibrated softmax): **{probs[pred_idx]:.1%}**")
-prob_table = {name: float(p) for name, p in zip(cfg.class_names, probs)}
-st.bar_chart(prob_table)
-st.caption(cam_text)
+    col_img, col_cam = st.columns(2)
+    with col_img:
+        st.subheader("Input"); st.image(image, use_column_width=True)
+    with col_cam:
+        top_name = finds[0][1]
+        st.subheader(f"Grad-CAM — top finding: {top_name}")
+        st.image(cam_imgs.get(top_name, overlay), use_column_width=True,
+                 caption="Coarse attention heat-map (not a lesion boundary).")
 
-# --- LLM preliminary note ---------------------------------------------------
-st.subheader("Preliminary note (RAG · Claude on Bedrock)")
-with st.spinner("Retrieving clinical references and drafting the note…"):
-    kb, bcfg, online = _load_kb(region)
-    patient_meta = {}
-    if age_group != "unspecified":
-        patient_meta["age_group"] = age_group
-    if view.strip():
-        patient_meta["note"] = view.strip()
-    result = generate_report(
-        dataset=cfg.dataset, class_names=cfg.class_names, pred_idx=pred_idx,
-        probs=probs, cam_description=cam_text, patient_meta=patient_meta,
-        bedrock_cfg=bcfg, kb=kb,
-    )
+    st.subheader("Findings (independent per-finding scores — several can be flagged)")
+    import pandas as pd
+    df = pd.DataFrame({"finding": cfg.class_names,
+                       "score": [float(p) for p in probs]}).sort_values("score", ascending=False)
+    st.dataframe(df.style.format({"score": "{:.1%}"}), use_container_width=True, hide_index=True)
+    highlighted = [n for _, n, p in finds]
+    st.markdown("**Highlighted:** " + ", ".join(f"`{n}` ({p:.0%})" for _, n, p in finds))
+    if len(cam_imgs) > 1:
+        cols = st.columns(len(cam_imgs))
+        for c, (name, ov) in zip(cols, cam_imgs.items()):
+            with c:
+                st.image(ov, use_column_width=True, caption=name)
+                st.caption(cam_descriptions[name])
+
+    st.subheader("Preliminary note (RAG · Claude on Bedrock)")
+    with st.spinner("Retrieving clinical references and drafting the note…"):
+        kb, bcfg, online = _load_kb(region)
+        result = generate_multilabel_report(
+            dataset=cfg.dataset, class_names=cfg.class_names, probs=probs,
+            cam_descriptions=cam_descriptions, threshold=threshold, top_k=4,
+            patient_meta=patient_meta, bedrock_cfg=bcfg, kb=kb,
+        )
+else:
+    col_img, col_cam = st.columns(2)
+    with col_img:
+        st.subheader("Input"); st.image(image, use_column_width=True)
+    with st.spinner("Running classifier + Grad-CAM…"):
+        overlay, cam, pred_idx, probs = gradcam_overlay(model, cfg, image)
+        cam_text = describe_cam(cam, cfg.class_names[pred_idx])
+    with col_cam:
+        st.subheader("Grad-CAM — where the model looked")
+        st.image(overlay, use_column_width=True, caption="Coarse attention heat-map (not a lesion boundary).")
+    st.subheader("Prediction")
+    st.markdown(f"**{cfg.class_names[pred_idx]}**  ·  model confidence (uncalibrated softmax): "
+                f"**{probs[pred_idx]:.1%}**")
+    st.bar_chart({name: float(p) for name, p in zip(cfg.class_names, probs)})
+    st.caption(cam_text)
+    st.subheader("Preliminary note (RAG · Claude on Bedrock)")
+    with st.spinner("Retrieving clinical references and drafting the note…"):
+        kb, bcfg, online = _load_kb(region)
+        result = generate_report(
+            dataset=cfg.dataset, class_names=cfg.class_names, pred_idx=pred_idx,
+            probs=probs, cam_description=cam_text, patient_meta=patient_meta,
+            bedrock_cfg=bcfg, kb=kb,
+        )
 
 if not online:
     st.warning("AWS Bedrock not configured in this environment — showing the offline "
@@ -154,7 +197,7 @@ st.markdown(result["report"])
 with st.expander("Provenance / debug"):
     st.write("**Backend:**", result["backend"])
     st.write("**Retrieved KB snippets:**", result["retrieved"])
-    st.write("**Checkpoint val macro-F1:**", ckpt.get("best_val_f1"))
+    st.write("**Checkpoint selection metric:**", ckpt.get("select_metric"), "=", ckpt.get("best_select", ckpt.get("best_val_f1")))
     st.write("**Dataset notes:**")
     from src.config import DATASETS
     st.caption(DATASETS[cfg.dataset]["notes"])

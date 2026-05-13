@@ -39,9 +39,13 @@ def gradcam_overlay(model: MedScanClassifier, cfg: TrainConfig, pil_image,
     model = model.to(device).eval()
     input_tensor = _prep(pil_image, cfg.image_size).to(device)
 
-    # forward once for the prediction / probabilities
+    # forward once for the prediction / scores — sigmoid for multi-label, softmax otherwise
     with torch.no_grad():
-        probs = torch.softmax(model(input_tensor), dim=1)[0].cpu().numpy()
+        logits = model(input_tensor)
+        if getattr(cfg, "is_multilabel", False):
+            probs = torch.sigmoid(logits)[0].cpu().numpy()
+        else:
+            probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
     pred = int(probs.argmax()) if target_class is None else int(target_class)
 
     target_layer = model.gradcam_target_layer()
@@ -114,6 +118,20 @@ def _overlay(rgb01: np.ndarray, cam01: np.ndarray) -> np.ndarray:
 # --------------------------------------------------------------------------- #
 # Turn a CAM into a one-line region description for the LLM report
 # --------------------------------------------------------------------------- #
+def top_findings(probs: np.ndarray, class_names: list[str], threshold: float = 0.5,
+                 top_k: int = 4) -> list[tuple[int, str, float]]:
+    """For multi-label: the findings at or above `threshold`, else the `top_k` highest.
+
+    Returns (class_index, class_name, score) tuples, highest score first.
+    """
+    probs = np.asarray(probs).ravel()
+    order = np.argsort(-probs)
+    hot = [i for i in order if probs[i] >= threshold]
+    if not hot:
+        hot = list(order[:top_k])
+    return [(int(i), class_names[int(i)], float(probs[int(i)])) for i in hot]
+
+
 def describe_cam(cam: np.ndarray, class_name: str, threshold: float = 0.6) -> str:
     """Coarse, honest description of where attention concentrates.
 

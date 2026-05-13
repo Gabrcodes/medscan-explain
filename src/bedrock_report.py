@@ -216,12 +216,113 @@ def generate_report(*, dataset: str, class_names: list[str], pred_idx: int,
     }
 
 
-def _invoke_claude(client, cfg: BedrockConfig, user_prompt: str) -> str:
+SYSTEM_PROMPT_MULTILABEL = """You are a careful clinical-documentation assistant inside an EDUCATIONAL \
+demo called "MedScan + Explain". You are NOT a radiologist and you do NOT diagnose. A multi-label \
+chest-X-ray model has produced an INDEPENDENT probability for each of 14 findings. Write a short, \
+structured PRELIMINARY note that:
+- states up front that it is an automated, non-diagnostic educational output;
+- lists the findings the model scored highest, in plain language, with their (uncalibrated) scores, \
+and explicitly says these are independent per-finding scores, not calibrated probabilities of disease, \
+and that several can be flagged at once;
+- for each highlighted finding, summarises the Grad-CAM region note as "where the model looked", \
+labelled coarse;
+- uses ONLY the provided reference snippets for clinical statements, citing them by bracketed id; \
+never invents facts or sources; if no snippet covers a finding, say so rather than guessing;
+- flags any finding among the highlighted ones that is potentially urgent (e.g. pneumothorax) and \
+says it needs prompt in-person assessment;
+- ends with concrete next steps routing to a qualified clinician/radiologist, and a one-line disclaimer.
+Keep it under ~280 words, short labelled sections. Never output a definitive diagnosis, prognosis, \
+drug, dose, or anything actionable without a clinician."""
+
+
+def _build_multilabel_prompt(*, dataset, ranked_findings, cam_descriptions, patient_meta, snippets):
+    fl = "\n".join(f"  - {name}: score {p:.1%}" for name, p in ranked_findings)
+    cams = "\n".join(f"  - {name}: {cam_descriptions.get(name, 'no Grad-CAM computed for this finding')}"
+                     for name, _ in ranked_findings)
+    refs = "\n".join(f"[{s['id']}] {s['title']} :: {s['text']} (source: {s.get('source','n/a')})"
+                     for s in snippets)
+    meta = ", ".join(f"{k}={v}" for k, v in patient_meta.items()) or "none provided"
+    return f"""DATASET / TASK: {dataset} (multi-label chest X-ray, 14 findings)
+TOP MODEL-FLAGGED FINDINGS (highest scores first):
+{fl}
+GRAD-CAM REGION NOTES (coarse, per highlighted finding):
+{cams}
+PATIENT METADATA (synthetic/de-identified): {meta}
+
+RETRIEVED CLINICAL REFERENCE SNIPPETS (cite by [id] only — do not use outside knowledge):
+{refs}
+
+Write the preliminary educational note now."""
+
+
+def generate_multilabel_report(*, dataset: str, class_names: list[str], probs,
+                               cam_descriptions: Optional[dict] = None,
+                               threshold: float = 0.5, top_k: int = 4,
+                               patient_meta: Optional[dict] = None,
+                               bedrock_cfg: Optional[BedrockConfig] = None,
+                               kb: Optional[ClinicalKB] = None) -> dict:
+    """Multi-label variant: report the highest-scoring findings with RAG grounding.
+
+    Highlights findings with score >= `threshold`; if none clear it, falls back to the
+    `top_k` highest-scoring findings so the note is never empty.
+    """
+    probs = np.asarray(probs, dtype=np.float64).ravel()
+    cam_descriptions = cam_descriptions or {}
+    patient_meta = patient_meta or {}
+    cfg = bedrock_cfg or BedrockConfig()
+    client = (kb.client if kb is not None else None) or make_bedrock_client(cfg)
+    kb = kb or ClinicalKB(cfg, client=client).build()
+
+    order = np.argsort(-probs)
+    highlighted = [i for i in order if probs[i] >= threshold]
+    if not highlighted:
+        highlighted = list(order[:top_k])
+    ranked = [(class_names[i], float(probs[i])) for i in highlighted]
+
+    query = f"{dataset} chest x-ray findings " + " ".join(n for n, _ in ranked)
+    snippets = kb.retrieve(query, k=max(cfg.top_k_passages, len(ranked) + 1))
+
+    user_prompt = _build_multilabel_prompt(
+        dataset=dataset, ranked_findings=ranked, cam_descriptions=cam_descriptions,
+        patient_meta=patient_meta, snippets=snippets,
+    )
+    if client is not None:
+        text = _invoke_claude(client, cfg, user_prompt, system=SYSTEM_PROMPT_MULTILABEL)
+        backend = f"bedrock:{cfg.chat_model_id}"
+    else:
+        cites = " ".join(f"[{s['id']}]" for s in snippets[:4])
+        lines = "\n".join(f"- **{n}** — model score {p:.0%}; "
+                          f"{cam_descriptions.get(n, 'no Grad-CAM computed')}" for n, p in ranked)
+        bg = "\n".join(f"- {s['title']}: {s['text']}" for s in snippets[:4])
+        text = (f"""**PRELIMINARY EDUCATIONAL NOTE — AUTOMATED, NOT A DIAGNOSIS**
+*(Generated offline without an LLM because AWS Bedrock was not configured here.)*
+
+**Task:** {dataset} — multi-label chest X-ray (14 findings).
+**Findings the model scored highest** (independent, uncalibrated scores — several can be flagged at once):
+{lines}
+
+**Relevant background (curated knowledge base):** {cites}
+{bg}
+
+**Next steps:** This is a study aid only. A qualified radiologist must review the actual film and
+correlate with the patient's history and exam. Any potentially urgent finding (e.g. pneumothorax)
+needs prompt in-person assessment.
+
+*Disclaimer: MedScan + Explain is a course project, not a medical device.*""")
+        backend = "offline-template"
+
+    return {"report": text, "backend": backend,
+            "highlighted_findings": [{"name": n, "score": p} for n, p in ranked],
+            "retrieved": [{"id": s["id"], "rank": s["_rank"], "score": round(s["_score"], 4)} for s in snippets],
+            "probabilities": {n: float(p) for n, p in zip(class_names, probs)}}
+
+
+def _invoke_claude(client, cfg: BedrockConfig, user_prompt: str, system: str = None) -> str:
     body = {
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": cfg.max_tokens,
         "temperature": cfg.temperature,
-        "system": SYSTEM_PROMPT,
+        "system": system or SYSTEM_PROMPT,
         "messages": [{"role": "user", "content": [{"type": "text", "text": user_prompt}]}],
     }
     resp = client.invoke_model(modelId=cfg.chat_model_id, body=json.dumps(body))

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "nih14-dataset-caveats",
+    "topic": "chestxray14",
+    "title": "NIH ChestX-ray14 label provenance and limitations",
+    "text": "The 14 finding labels in NIH ChestX-ray14 were extracted automatically from free-text radiology reports using natural-language processing, with an estimated accuracy of roughly 90%. Labels are image-level only (no lesion locations for most images), reports were not always available, and the data come from a single institution's patient population. Treat per-finding model scores as research outputs, not validated screening results.",
+    "source": "Wang et al., 'ChestX-ray8', CVPR 2017; summarised for educational use."
+  },
+  {
+    "id": "cxr-atelectasis",
+    "topic": "chestxray14",
+    "title": "Atelectasis on chest X-ray",
+    "text": "Atelectasis (lung collapse / volume loss) typically shows as increased opacity with signs of volume loss: displacement of fissures, crowding of vessels or ribs, and shift of the mediastinum, hilum, or hemidiaphragm toward the affected area. It is common post-operatively and in hospitalised patients and is often not clinically significant on its own.",
+    "source": "Adapted from general radiology teaching references; educational use only."
+  },
+  {
+    "id": "cxr-cardiomegaly",
+    "topic": "chestxray14",
+    "title": "Cardiomegaly on chest X-ray",
+    "text": "Cardiomegaly is suggested when the cardiothoracic ratio exceeds ~0.5 on a PA film. This is a screening observation, not a diagnosis: AP/portable technique, low lung volumes, and pericardial effusion can all enlarge the cardiac silhouette. Echocardiography is the appropriate confirmatory test.",
+    "source": "Adapted from general radiology teaching references; educational use only."
+  },
+  {
+    "id": "cxr-effusion",
+    "topic": "chestxray14",
+    "title": "Pleural effusion on chest X-ray",
+    "text": "A pleural effusion classically blunts the costophrenic angle and forms a meniscus on an upright film; large effusions opacify the hemithorax and may shift the mediastinum away. Layering on a lateral decubitus view or ultrasound confirms free fluid. Causes range from heart failure to infection and malignancy.",
+    "source": "Adapted from general radiology teaching references; educational use only."
+  },
+  {
+    "id": "cxr-pneumothorax",
+    "topic": "chestxray14",
+    "title": "Pneumothorax on chest X-ray — and why it is urgent",
+    "text": "A pneumothorax appears as a visceral pleural line with no lung markings peripheral to it. A tension pneumothorax (mediastinal shift away from the side, hemidiaphragm depression, haemodynamic compromise) is a life-threatening emergency requiring immediate decompression. Any suspected pneumothorax warrants prompt clinical evaluation.",
+    "source": "Adapted from emergency-radiology teaching material; educational use only."
+  },
+  {
+    "id": "cxr-mass-nodule",
+    "topic": "chestxray14",
+    "title": "Pulmonary nodules and masses",
+    "text": "By convention a rounded pulmonary opacity under ~3 cm is a 'nodule' and ~3 cm or larger is a 'mass'. New or growing nodules/masses require characterisation (often CT) and clinical correlation; many are benign (granulomas, hamartomas) but malignancy must be excluded, especially in smokers and older patients.",
+    "source": "Adapted from thoracic-imaging guidance (e.g., Fleischner Society principles); educational use only."
+  },
+  {
+    "id": "cxr-edema-consolidation",
+    "topic": "chestxray14",
+    "title": "Pulmonary edema vs. consolidation",
+    "text": "Cardiogenic pulmonary edema tends to be bilateral and perihilar ('bat-wing'), with septal (Kerley B) lines, upper-lobe vascular redistribution, and sometimes effusions. Consolidation (air spaces filled by pus, fluid, blood, or cells) is usually more focal, may contain air bronchograms, and in the right clinical context suggests pneumonia. The two can coexist and overlap radiographically.",
+    "source": "Adapted from general radiology teaching references; educational use only."
+  },
+  {
+    "id": "cxr-multilabel-scope",
+    "topic": "responsible-ai",
+    "title": "Reading a multi-finding automated chest X-ray report",
+    "text": "A multi-label model outputs an independent probability for each of several findings; these are not mutually exclusive and are not calibrated probabilities of disease. A high score flags a pattern statistically associated with that finding's label in the training reports — it does not localise, grade, or explain the finding, and it cannot replace a radiologist's structured read or clinical correlation.",
+    "source": "Project design principle (MedScan + Explain)."
+  }
+]
